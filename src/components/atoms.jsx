@@ -7,6 +7,20 @@ export const Base = styled.div`
     width: ${props => props.w};
     height: ${props => props.h};
     max-width: ${props => props.mw};
+    max-height: ${props => props.mh};
+`;
+
+export const Card = styled(Base)`
+    border-radius: ${props => props.r};
+    background: ${props => props.background};
+`;
+
+export const Flex = styled(Base)`
+    display: flex;
+    gap: ${props => props.gap};
+    align-items: ${props => props.align};
+    justify-content: ${props => props.justify};
+    flex-direction: ${props => props.dir};
 `;
 
 export const Container = styled(Base)`
@@ -19,7 +33,8 @@ export const Text = styled(Base)`
     font-family: Manrope, sans;
     font-size: ${props => props.size || '16px'};
     font-weight: ${props => props.weight || '400'};
-    color: ${props => props.weight || '#333333'};
+    color: ${props => props.color || '#333333'};
+    text-align: ${props => props.align};
 `;
 
 export const Image = styled.img`
