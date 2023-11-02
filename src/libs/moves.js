@@ -1,109 +1,147 @@
-// export const context = () => {
-//     return 
-// };
+export const isWhite = ({code}) => 'QNRBPK'.includes(code);
+export const isPositionValid = (p) => p.x > -1 && p.y > -1 && p.x < 8 && p.y < 8;
 
+export const match = (a, b) => a.x === b.x && a.y === b.y;
+export const add = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
+export const sub = (a, b) => ({ x: a.x - b.x, y: a.y - b.y });
 
-// // const positionValid = (p) => 
-// //     start.x < 0 || start.y < 0 || start.x > 7 || start.y > 7;
+export const curry = (predicate, ...args) => (...$args) => predicate(...args.concat($args));
 
-// // const color = (n) => n.toLowerCase() === n ? 'black' : 'white';
+export const flatten = (a) => a.reduce((acc, b) => acc.concat(b), []);
+export const zip = (a, b) => flatten(a.map(($a) => b.map(($b) => [$a, $b])));
 
-// // //
-// // //
-// // const walk = (position, predicate, find, color) => {
-// //     let values = [];
+const isBishop = ({code}) => code.toLowerCase() === 'b';
+const isKing = ({code}) => code.toLowerCase() === 'k';
+const isQueen = ({code}) => code.toLowerCase() === 'q';
+const isKnight = ({code}) => code.toLowerCase() === 'n';
+const isPawn = ({code}) => code.toLowerCase() === 'p';
+const isRook = ({code}) => code.toLowerCase() === 'r';
 
-// //     for (let i = 0; i < 8; ++i) {
-// //         position = predicate(position);
-
-// //         const piece = find(position);
-
-// //         if (find(start) || ) {
-// //             break
-// //         }
-
-// //         values.push({ ...start});
-// //     }
-
-// //     return values;
-// // };
-
-// // if (piece.code.toLowerCase() === 'b') {
-// //     return [
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x - 1, y: p.y - 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x - 1, y: p.y + 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x + 1, y: p.y + 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x + 1, y: p.y - 1 })),
-// //     ];
-// // }
-
-// // if (piece.code.toLowerCase() === 'r') {
-// //     return [
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x, y: p.y - 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x, y: p.y + 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x - 1, y: p.y })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x + 1, y: p.y })),
-// //     ];
-// // }
-
-// // if (piece.code.toLowerCase() === 'q') {
-// //     return [
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x - 1, y: p.y - 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x - 1, y: p.y + 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x + 1, y: p.y + 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x + 1, y: p.y - 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x, y: p.y - 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x, y: p.y + 1 })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x - 1, y: p.y })),
-// //         ...walk({ ...piece.position }, (p) => ({ x: p.x + 1, y: p.y })),
-// //     ];
-// // }
-
-// // if (piece.code.toLowerCase() === 'n') {
-// //     const options = [
-// //         { x: -1, y: 2 },
-// //         { x: -1, y: -2 },
-// //         { x: 1, y: 2 },
-// //         { x: 1, y: -2 },
-// //         { x: -2, y: 1 },
-// //         { x: -2, y: -1 },
-// //         { x: 2, y: 1 },
-// //         { x: 2, y: -1 },
-// //     ];
+export const get = (pieces, pieceToMove) => {
+    const isOccupied = (p) => 
+        ((piece) => piece ? (isWhite(piece) ? 'white' : 'black') : null)(pieces.find(($) => match($.position, p)));
     
-// //     return options.map((p) => add(p, piece.position)).filter((p) => {
-// //         return p.x >= 0 && p.x <= 7 && p.y >= 0 && p.y <= 7;
-// //     }).filter((p) => !find(p));
-// // }
+    const walk = (predicate, position = { ...pieceToMove.position }) => {
+        let moves = [];
 
-// // if (piece.code.toLowerCase() === 'p') {
-// //     const canDoTwo = (piece.code === 'p' && piece.position.y === 1) 
-// //         || (piece.code === 'P' && piece.position.y === 6);
+        for (let i = 0; i < 8; ++i) {
+            position = predicate(position);
+
+            const validity = isPositionValid(position);
+            const occupancy = isOccupied(position);
+            const cannotOccupyPosition = occupancy !== null && (occupancy === 'white') === isWhite(pieceToMove);
+
+            if (!validity || cannotOccupyPosition) {
+                break;
+            }
+
+            moves.push({ id: pieceToMove.id, position: { ...position }, type: occupancy === null ? 'simple' : 'capture' });
+
+            if (occupancy !== null) {
+                break
+            }
+        }
+
+        return moves;
+    };  
+
+    const diagonalSteps = zip([-1, 1], [-1, 1]);
+    const verticalSteps = zip([0], [-1, 1]);
+    const horizontalSteps = zip([-1, 1], [0]);
+
+    if (isBishop(pieceToMove)) {
+        return flatten(
+            diagonalSteps
+                .map(([x, y]) => walk(curry(add, { x, y })))
+        );
+    }
+
+    if (isRook(pieceToMove)) {
+        return flatten(
+            flatten([horizontalSteps, verticalSteps])
+                .map(([x, y]) => walk(curry(add, { x, y })))
+        );
+    }
+
+    if (isQueen(pieceToMove)) {
+        return flatten(
+            flatten([diagonalSteps, horizontalSteps, verticalSteps])
+                .map(([x, y]) => walk(curry(add, { x, y })))
+        );
+    }
+
+    if (isKnight(pieceToMove)) {
+        return flatten([
+            zip([2, -2], [-1, 1]),
+            zip([-1, 1], [2, -2]),
+        ]).map(([x, y]) => add(pieceToMove.position, { x, y })).map((position) => {
+            const occupancy = isOccupied(position);
+            const validity = isPositionValid(position);
+            const cannotOccupyPosition = occupancy !== null && (occupancy === 'white') === isWhite(pieceToMove);
+
+            if (!validity || cannotOccupyPosition) {
+                return null
+            }
+            
+            return { id: pieceToMove.id, position, type: !!occupancy ? 'capture' : 'simple' };
+        }).filter(Boolean);
+    }
+
+    if (isPawn(pieceToMove)) {
+        const direction = isWhite(pieceToMove) ? -1 : 1;
+        const canDoTwo = pieceToMove.position.y === (3.5 - (direction * 2.5));
+
+        const simpleMoves = [
+            add(pieceToMove.position, { x: 0, y: direction }),
+            canDoTwo ? add(pieceToMove.position, { x: 0, y: direction * 2 }) : null,
+        ].filter(Boolean).map((position) => {
+            const occupancy = isOccupied(position);
+            const validity = isPositionValid(position);
+
+            return (!validity || !!occupancy) ? null : position;
+        }).filter(Boolean);
+        
+        const enemies = [-1, 1]
+            .map((x) => add(pieceToMove.position, { x, y: direction }))
+            .filter((p) => !!pieces.find(($) => match($.position, p)));
+        
+        const captureMoves = enemies.map((position) => {
+            const occupancy = isOccupied(position);
+            const validity = isPositionValid(position);
+            const cannotOccupyPosition = occupancy === null || (occupancy === 'white') === isWhite(pieceToMove);
+
+            return (!validity || cannotOccupyPosition) ? null : position;
+        }).filter(Boolean);
+
+        return flatten([
+            simpleMoves.map((position) => ({ id: pieceToMove.id, position, type: 'simple' })),
+            captureMoves.map((position) => ({ id: pieceToMove.id,  position, type: 'capture' })),
+        ]);
+    }
+
+    if (isKing(pieceToMove)) {
+        return zip([-1, 0, 1], [-1, 0, 1]).map(([x, y]) => {
+            const position = add(pieceToMove.position, { x, y })
+            const occupancy = isOccupied(position);
+            const validity = isPositionValid(position);
+            const cannotOccupyPosition = occupancy !== null && (occupancy === 'white') === isWhite(pieceToMove);
+
+            if (!validity || cannotOccupyPosition) {
+                return null
+            }
+            
+            return { id: pieceToMove.id, position, type: !!occupancy ? 'capture' : 'simple' };
+        }).filter(Boolean);
+    }
+
+    return [];
+};
+
+
+
+
     
-// //     const direction = piece.code === 'P' ? -1 : 1;
 
-// //     return [
-// //         { x: piece.position.x, y: piece.position.y + direction },
-// //         canDoTwo ? { x: piece.position.x, y: piece.position.y + direction * 2 } : null,
-// //     ].filter(Boolean).filter((p) => !find(p));
-// // }
-
-// // if (piece.code.toLowerCase() === 'k') {
-// //     const options = [
-// //         { x: -1, y: -1 },
-// //         { x: -1, y: 0 },
-// //         { x: -1, y: 1 },
-// //         { x: 0, y: -1 },
-// //         // { x: 0, y: 0 },
-// //         { x: 0, y: 1 },
-// //         { x: 1, y: -1 },
-// //         { x: 1, y: 0 },
-// //         { x: 1, y: 1 },
-// //     ];
     
-// //     return options.map((p) => add(p, piece.position)).filter((p) => {
-// //         return p.x >= 0 && p.x <= 7 && p.y >= 0 && p.y <= 7;
-// //     }).filter((p) => !find(p));
-// // }
 
-// // return [{ x: piece.position.x, y: piece.position.y - 1 }];
+    
