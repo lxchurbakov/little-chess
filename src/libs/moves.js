@@ -1,3 +1,5 @@
+import { isBishop, isKing, isQueen, isKnight, isPawn, isRook } from './utils';
+
 export const isWhite = ({code}) => 'QNRBPK'.includes(code);
 export const isPositionValid = (p) => p.x > -1 && p.y > -1 && p.x < 8 && p.y < 8;
 
@@ -9,13 +11,6 @@ export const curry = (predicate, ...args) => (...$args) => predicate(...args.con
 
 export const flatten = (a) => a.reduce((acc, b) => acc.concat(b), []);
 export const zip = (a, b) => flatten(a.map(($a) => b.map(($b) => [$a, $b])));
-
-const isBishop = ({code}) => code.toLowerCase() === 'b';
-const isKing = ({code}) => code.toLowerCase() === 'k';
-const isQueen = ({code}) => code.toLowerCase() === 'q';
-const isKnight = ({code}) => code.toLowerCase() === 'n';
-const isPawn = ({code}) => code.toLowerCase() === 'p';
-const isRook = ({code}) => code.toLowerCase() === 'r';
 
 export const get = (pieces, pieceToMove) => {
     const isOccupied = (p) => 
@@ -137,11 +132,3 @@ export const get = (pieces, pieceToMove) => {
     return [];
 };
 
-
-
-
-    
-
-    
-
-    

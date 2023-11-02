@@ -1,3 +1,10 @@
+export const isBishop = ({code}) => code.toLowerCase() === 'b';
+export const isKing = ({code}) => code.toLowerCase() === 'k';
+export const isQueen = ({code}) => code.toLowerCase() === 'q';
+export const isKnight = ({code}) => code.toLowerCase() === 'n';
+export const isPawn = ({code}) => code.toLowerCase() === 'p';
+export const isRook = ({code}) => code.toLowerCase() === 'r';
+
 let _id = 1;
 export const createid = () => _id++;
 

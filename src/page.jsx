@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { Circle, Clickable, Relative, Absolute, Image, Base, Container, Text } from './components/atoms';
+import { Circle, Absolute, Image, Base, Container, Text } from './components/atoms';
 
 import { board, PIECES } from './libs/images';
-import { DEFAULT_POSITION,  } from './libs/utils';
-import { Chess, useChess, isWhite, match } from './libs/chess';
+import { Chess, match } from './libs/chess';
 
 import { Drag, Drop } from './libs/dnd';
 
@@ -104,8 +103,8 @@ const ChessBoard = () => {
 
     // Load default position on startup
     React.useEffect(() => {
-        // chess.load(DEFAULT_POSITION);
-        chess.load(`3QQ1Q1/k7/8/1Q6/5Q2/pP6/P7/2R3K1 b - - 0 50`);
+        chess.load('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        // chess.load(`3QQ1Q1/k7/8/1Q6/5Q2/pP6/P7/2R3K1 b - - 0 50`);
         // setWhiteToMove(true);
     }, []);
 
