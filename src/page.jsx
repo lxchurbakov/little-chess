@@ -1,11 +1,13 @@
 import React from 'react';
 
-import { Circle, Absolute, Image, Base, Container, Text } from './components/atoms';
+import { Flex, Circle, Absolute, Image, Base, Container, Text } from './components/atoms';
 
 import { board, PIECES } from './libs/images';
 import { Chess, match } from './libs/chess';
 
 import { Drag, Drop } from './libs/dnd';
+
+import { History } from './components/history';
 
 const STOP_DRAG = (e) => {
     e.preventDefault();
@@ -41,23 +43,27 @@ const DraggablePiece = ({ id, position, code, onStart }) => {
     )
 };
 
-const ChessBoardView = ({ pieces, circles, onStart, onEnd, ...props }) => {
+const ChessBoardView = ({ pieces, circles, onStart, onEnd, isFlip, ...props }) => {
     const [grid, setGrid] = React.useState(1);
     const dropRef = React.useRef(null);
+
+    const flip = React.useCallback(({ x, y }) => {
+        return { x: !isFlip ? 7 - x : x, y: isFlip ? 7 - y : y };
+    }, [isFlip]);
 
     React.useEffect(() => {
         setGrid(dropRef.current?.getBoundingClientRect().width / 8);
     }, []);
 
     const handleDrop = React.useCallback((data, { x, y }) => {
-        onEnd?.(data, {
+        onEnd?.(data, flip({
             x: Math.floor(x / grid),
             y: Math.floor(y / grid),
-        });
-    }, [grid, onEnd]);
+        }));
+    }, [grid, flip, onEnd]);
 
     return (
-        <Drop ref={dropRef} mw="700px" w="100%" onDrop={handleDrop} {...props}>
+        <Drop ref={dropRef} onDrop={handleDrop} {...props}>
             <Image w="100%" src={board} />
 
             {pieces.map(({ code, position, id }) => (
@@ -65,70 +71,68 @@ const ChessBoardView = ({ pieces, circles, onStart, onEnd, ...props }) => {
                     key={id}
                     id={id}
                     onStart={onStart}
-                    position={position}
+                    position={flip(position)}
                     code={code}
                 />
             ))}
 
-            {circles.map(({ position: h }, index) => (
-                <Absolute 
-                    key={index}
-                    w="calc(100% / 8)" 
-                    left={`calc((100% / 8) * (${h.x} + 0.5) - 12px)`}
-                    top={`calc((100% / 8) * (${h.y} + 0.5) - 12px)`}
-                    style={{ zIndex: 1 }}
-                >
-                    <Circle w="24px" h="24px" style={{ background: '#9453c9' }} />
-                </Absolute>
-            ))}
+            {circles.map((circle, index) => {
+                const h = flip(circle.position);
+
+                return (
+                    <Absolute 
+                        key={index}
+                        w="calc(100% / 8)" 
+                        left={`calc((100% / 8) * (${h.x} + 0.5) - 12px)`}
+                        top={`calc((100% / 8) * (${h.y} + 0.5) - 12px)`}
+                        style={{ zIndex: 1 }}
+                    >
+                        <Circle w="24px" h="24px" style={{ background: '#9453c9' }} />
+                    </Absolute>
+                );
+            })}
         </Drop>
     );
 };
 
 const chess = new Chess();
 
-const ChessBoard = () => {
-    const forceUpdate = (([, setState]) => () => setState(($) => !$))(React.useState(false));
+const ChessBoardWithHistory = () => {
+    const [isFlip, setIsFlip] = React.useState(true);
+
+    const restart = React.useCallback(() => {
+        chess.load('r1bqkb1r/pp3p2/2n2n1p/3p2p1/8/2N1P1B1/PPP2PPP/R2QKBNR w KQkq - 1 9');
+        // chess.load('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        // chess.load('2r2rk1/ppbQpp1p/6p1/8/4P3/8/P3KPqP/5R2 w - - 0 27');
+        // chess.load(`3QQ1Q1/k7/8/1Q6/5Q2/pP6/P7/2R3K1 b - - 0 50`);
+    }, []);
+
+    const [history, setHistory] = React.useState([]);
+    // const forceUpdate = (([, setState]) => () => setState(($) => !$))(React.useState(false));
 
     React.useEffect(() => {
-        chess.onUpdate = forceUpdate;
-    }, [forceUpdate]);
+        chess.onUpdate = () => {
+            setHistory(chess.history.slice());
+        };
+    }, [setHistory]);
 
-    // Store the game object itself (expressed via hook)
-    // const chess = useChess();
-    // Store places we should put our highlighs to
     const [moves, setMoves] = React.useState([]);
-    // Figure out who is to move
-    // const [whiteToMove, setWhiteToMove] = React.useState(true);
 
     // Load default position on startup
     React.useEffect(() => {
-        chess.load('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-        // chess.load(`3QQ1Q1/k7/8/1Q6/5Q2/pP6/P7/2R3K1 b - - 0 50`);
-        // setWhiteToMove(true);
+        restart();
     }, []);
 
     const start = React.useCallback((id) => {
-        const piece = chess.piece(id);
         const possibleMoves = chess.movesById(id);
-
-        console.log(possibleMoves)
-
-        // if (isWhite(piece) !== whiteToMove) {
-        //     return false;
-        // }
-
-        if (possibleMoves.length === 0) {
-            return false;
-        }
 
         setMoves(possibleMoves);     
 
-        return true;
+        return (possibleMoves.length > 0);
     }, [setMoves, chess]);
 
-    console.log(chess.isCheck());
-    console.log(chess.isGameOver());
+    // console.log(chess.isCheck());
+    // console.log(chess.isGameOver());
 
     const end = React.useCallback((id, { x, y }) => {
         const possibleMove = moves.find(($) => match($.position, { x, y }));
@@ -138,16 +142,29 @@ const ChessBoard = () => {
         }
 
         setMoves([]);
-        // setWhiteToMove(($) => !$);
     }, [moves, setMoves, chess]);
 
     return (
-        <ChessBoardView
-            pieces={chess.pieces}
-            circles={moves}
-            onStart={start}
-            onEnd={end}
-        />
+        <Flex gap="12px">
+            <ChessBoardView
+                mw="700px" 
+                w="100%"
+                pieces={chess.pieces}
+                circles={moves}
+                onStart={start}
+                onEnd={end}
+                isFlip={isFlip}
+            />
+
+            <History 
+                history={history} 
+                check={chess.isCheck()}
+                status={chess.isGameOver()}
+                onRestart={restart}
+                onFlip={() => setIsFlip($ => !$)}
+                mw="300px" 
+            />
+        </Flex>
     );  
 };
 
@@ -158,7 +175,7 @@ export default () => {
                 <Text mb="12px" size="32px" weight="800">Little Chess</Text>
                 <Text mb="48px" size="16px" weight="400">Здесь мы будем творить создавать нашу шахматную доску.</Text>
 
-                <ChessBoard />
+                <ChessBoardWithHistory />
             </Base>
         </Container>
     ); 

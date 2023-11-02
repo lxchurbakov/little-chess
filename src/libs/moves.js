@@ -83,7 +83,7 @@ export const get = (pieces, pieceToMove) => {
     }
 
     if (isPawn(pieceToMove)) {
-        const direction = isWhite(pieceToMove) ? -1 : 1;
+        const direction = isWhite(pieceToMove) ? 1 : -1;
         const canDoTwo = pieceToMove.position.y === (3.5 - (direction * 2.5));
 
         const simpleMoves = [

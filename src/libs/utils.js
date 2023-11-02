@@ -8,13 +8,15 @@ export const isRook = ({code}) => code.toLowerCase() === 'r';
 let _id = 1;
 export const createid = () => _id++;
 
-export const parsefen = (v) => {
+export const parsefen = (fen) => {
+    const [pieces, whoToMove, castling] = fen.split(' ');
+
     let x = 0;
     let y = 0;
 
     let result = [];
 
-    for (let value of v.split('')) {
+    for (let value of pieces.split('')) {
         if ('12345678'.includes(value)) {
             x += Number(value);
         } else if ('rnbqkpRNBQKP'.includes(value)) {
@@ -22,16 +24,25 @@ export const parsefen = (v) => {
         } else if (value === '/') {
             x = 0;
             y++;
-        } if (value === ' ') {
-            break;
         }
     }
+
+
 
     // v.split('').forEach((value) => {
         
     // });
 
-    return result;
+    return {
+        pieces: result.map((r) => ({ ...r, position: {x:r.position.x, y: 7 - r.position.y } })),
+        whiteToMove: whoToMove === 'w',
+        castle: {
+            K: castling.includes('K'),
+            Q: castling.includes('Q'),
+            k: castling.includes('k'),
+            q: castling.includes('q'),
+        },
+    };
 };
 
 export const DEFAULT_POSITION = 
