@@ -101,8 +101,8 @@ const ChessBoardWithHistory = () => {
     const [isFlip, setIsFlip] = React.useState(true);
 
     const restart = React.useCallback(() => {
-        chess.load('r1bqkb1r/pp3p2/2n2n1p/3p2p1/8/2N1P1B1/PPP2PPP/R2QKBNR w KQkq - 1 9');
-        // chess.load('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        // chess.load('r1bqkb1r/pp3p2/2n2n1p/3p2p1/8/2N1P1B1/PPP2PPP/R2QKBNR w KQkq - 1 9');
+        chess.load('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         // chess.load('2r2rk1/ppbQpp1p/6p1/8/4P3/8/P3KPqP/5R2 w - - 0 27');
         // chess.load(`3QQ1Q1/k7/8/1Q6/5Q2/pP6/P7/2R3K1 b - - 0 50`);
     }, []);
