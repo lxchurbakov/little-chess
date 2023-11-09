@@ -6,4 +6,6 @@ import Page from './page';
 const app = document.getElementById('app');
 const root = createRoot(app);
 
-root.render(<Page />);
+root.render(
+    <Page />
+);

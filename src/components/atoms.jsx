@@ -13,9 +13,8 @@ export const Container = styled(Base)`
 `;
 
 export const Text = styled(Base)`
-    font-family: Manrope, sans;
+    font-family: Raleway, sans;
     font-size: ${props => props.size || '16px'};
     font-weight: ${props => props.weight || '400'};
-    color: ${props => props.weight || '#333333'};
+    color: ${props => props.color || '#333333'};
 `;
-
