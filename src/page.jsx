@@ -2,6 +2,8 @@ import React from 'react';
 
 import { Relative, Absolute, Base, Container, Text, Image } from './components/atoms';
 
+import { Drag, Drop } from './libs/dnd';
+
 import board from './assets/board.png';
 
 import bn from './assets/bn.png';
@@ -32,29 +34,76 @@ export const PIECES = {
     r: br,
 };
 
-const ChessBoard = ({ ...props }) => {
-    const grid = `(100% / 8)`;
+const STOP_DRAG = (e) => e.preventDefault();
 
-    const [pieces, setPieces] = React.useState([
-        { code: 'q', position: { x: 2, y: 1 } },
-        { code: 'N', position: { x: 3, y: 1 } },
-    ]);
+const Piece = React.memo(({ code }) => {
+    const src = React.useMemo(() => PIECES[code], [code]);
 
     return (
-        <Relative {...props}>
+        <Image w="100%" onDragStart={STOP_DRAG} src={src} />
+    );
+});
+
+const DraggablePiece = ({ id, position, code, onStart }) => {
+    const grid = `(100% / 8)`;
+
+    const handleStart = React.useCallback(() => {
+        return true;
+    }, [onStart, id]);
+
+    return (
+        <Drag 
+            data={id}
+            w={`calc${grid}`} 
+            left={`calc(${grid} * ${position.x})`}
+            top={`calc(${grid} * ${position.y})`}
+            style={{ zIndex: 2 }}
+            onStart={handleStart}
+        >
+            <Piece code={code} />
+        </Drag>
+    )
+};
+
+const ChessBoard = ({ ...props }) => {
+    const [grid, setGrid] = React.useState(1);
+    const dropRef = React.useRef(null);
+
+    const [pieces, setPieces] = React.useState([
+        { id: 1, code: 'Q', position: { x: 0, y: 0 }},
+        { id: 2, code: 'N', position: { x: 0, y: 1 }},
+    ])
+
+    React.useEffect(() => {
+        setGrid(dropRef.current?.getBoundingClientRect().width / 8);
+    }, []);
+
+    const handleDrop = React.useCallback((data, { x, y }) => {
+        setPieces(($) => {
+            return $.map(($$) => {
+                return $$.id === data ? {
+                    ...$$, position: {
+                        x: Math.floor(x / grid),
+                        y: Math.floor(y / grid),
+                    },
+                } : $$;
+            });
+        });
+    }, [grid, setPieces]);
+
+    return (
+        <Drop ref={dropRef} onDrop={handleDrop} {...props}>
             <Image w="100%" src={board} />
 
-            {pieces.map((piece) => (
-                <Absolute
-                    w={`calc${grid}`} 
-                    left={`calc(${grid} * ${piece.position.x})`}
-                    top={`calc(${grid} * ${piece.position.y})`}
-                    style={{ zIndex: 2 }}
-                >
-                    <Image w="100%" src={PIECES[piece.code]} />
-                </Absolute>
+            {pieces.map(({ code, position, id }) => (
+                <DraggablePiece
+                    key={id}
+                    id={id}
+                    position={position}
+                    code={code}
+                />
             ))}
-        </Relative>
+        </Drop>
     );
 };
 

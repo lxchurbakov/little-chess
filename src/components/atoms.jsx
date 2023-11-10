@@ -42,3 +42,12 @@ export const Absolute = styled(Base)`
     right: ${props => props.right};
     bottom: ${props => props.bottom};
 `;
+
+export const Clickable = styled(Base)`
+    cursor: pointer;
+    will-change: transform;
+
+    &:active {
+        transform: translateY(1px);
+    }
+`;
