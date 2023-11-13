@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Relative, Absolute, Base, Container, Text, Image } from './components/atoms';
+import { Circle, Absolute, Base, Container, Text, Image } from './components/atoms';
 
 import { Drag, Drop } from './libs/dnd';
+import { Chess } from './libs/chess';
 
 import board from './assets/board.png';
 
@@ -48,7 +49,7 @@ const DraggablePiece = ({ id, position, code, onStart }) => {
     const grid = `(100% / 8)`;
 
     const handleStart = React.useCallback(() => {
-        return true;
+        return onStart?.(id) || true;
     }, [onStart, id]);
 
     return (
@@ -65,34 +66,39 @@ const DraggablePiece = ({ id, position, code, onStart }) => {
     )
 };
 
+const chess = new Chess();
+
 const ChessBoard = ({ ...props }) => {
     const [grid, setGrid] = React.useState(1);
     const dropRef = React.useRef(null);
 
-    const [pieces, setPieces] = React.useState([
-        { id: 1, code: 'Q', position: { x: 0, y: 0 }},
-        { id: 2, code: 'N', position: { x: 0, y: 1 }},
-    ])
+    const [pieces, setPieces] = React.useState(chess.pieces);
+    const [moves, setMoves] = React.useState([]);
+
+    React.useEffect(() => {
+        chess.onUpdate = setPieces;
+    }, [setPieces]);
 
     React.useEffect(() => {
         setGrid(dropRef.current?.getBoundingClientRect().width / 8);
     }, []);
 
-    const handleDrop = React.useCallback((data, { x, y }) => {
-        setPieces(($) => {
-            return $.map(($$) => {
-                return $$.id === data ? {
-                    ...$$, position: {
-                        x: Math.floor(x / grid),
-                        y: Math.floor(y / grid),
-                    },
-                } : $$;
-            });
-        });
-    }, [grid, setPieces]);
+    const start = React.useCallback((id) => {
+        setMoves(chess.movesById(id));
+    }, [setMoves]);
+
+    const end = React.useCallback((id, { x, y }) => {
+        const move = moves.find(($) => $.id === id);
+
+        if (move) {
+            chess.apply(move);
+        }
+
+        setMoves([]);
+    }, [moves, grid, setPieces]);
 
     return (
-        <Drop ref={dropRef} onDrop={handleDrop} {...props}>
+        <Drop ref={dropRef} onDrop={end} {...props}>
             <Image w="100%" src={board} />
 
             {pieces.map(({ code, position, id }) => (
@@ -101,8 +107,25 @@ const ChessBoard = ({ ...props }) => {
                     id={id}
                     position={position}
                     code={code}
+                    onStart={start}
                 />
             ))}
+
+            {moves.map((move, index) => {
+                const h = move.position;
+
+                return (
+                    <Absolute
+                        key={index}
+                        w="calc(100% / 8)" 
+                        left={`calc((100% / 8) * (${h.x} + 0.5) - 12px)`}
+                        top={`calc((100% / 8) * (${h.y} + 0.5) - 12px)`}
+                        style={{ zIndex: 1 }}
+                    >
+                        <Circle w="24px" h="24px" color="blue" />
+                    </Absolute>
+                );
+            })}
         </Drop>
     );
 };

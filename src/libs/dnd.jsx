@@ -65,7 +65,7 @@ export const Drag = ({ data, children, onStart, onEnd, ...props }) => {
             window.removeEventListener('mouseup', mouseup);
         };
 
-        if (onStart?.(e)) {
+        if (onStart?.(data)) {
             drop.current.start(e, data);
 
             window.addEventListener('mousemove', mousemove);

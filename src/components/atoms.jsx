@@ -51,3 +51,8 @@ export const Clickable = styled(Base)`
         transform: translateY(1px);
     }
 `;
+
+export const Circle = styled(Base)`
+    border-radius: 100%;
+    background: ${props => props.color};
+`;
