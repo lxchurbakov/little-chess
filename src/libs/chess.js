@@ -1,3 +1,5 @@
+import { parsefen } from './utils';
+
 const DEFAULT_BOARD = [
     { id: 1, code: 'Q', position: { x: 0, y : 0 } },
     { id: 2, code: 'K', position: { x: 2, y : 0 } },
@@ -19,6 +21,18 @@ export class Chess {
 
     remove = (id) => {
         this.pieces = this.pieces.filter(($) => $.id !== id);
+    };
+
+
+    load = (fen) => {
+        const result = parsefen(fen);
+
+        this.pieces = result.pieces;
+        // this.whiteToMove = result.whiteToMove;;
+        // this.history = [];
+        // this.castle = result.castle;
+
+        this.onUpdate?.(this.pieces);
     };
 
     movesById = (id) => {

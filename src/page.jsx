@@ -35,6 +35,8 @@ export const PIECES = {
     r: br,
 };
 
+const pointsEqual = (a, b) => a.x === b.x && a.y === b.y;
+
 const STOP_DRAG = (e) => e.preventDefault();
 
 const Piece = React.memo(({ code }) => {
@@ -88,7 +90,8 @@ const ChessBoard = ({ ...props }) => {
     }, [setMoves]);
 
     const end = React.useCallback((id, { x, y }) => {
-        const move = moves.find(($) => $.id === id);
+        const position = { x: Math.floor(x / grid), y: Math.floor(y / grid) };
+        const move = moves.find(($) => $.id === id && pointsEqual($.position, position));
 
         if (move) {
             chess.apply(move);
@@ -96,6 +99,14 @@ const ChessBoard = ({ ...props }) => {
 
         setMoves([]);
     }, [moves, grid, setPieces]);
+
+    const restart = React.useCallback(() => {
+        chess.load('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    }, []);
+
+    React.useEffect(() => {
+        restart();
+    }, []);
 
     return (
         <Drop ref={dropRef} onDrop={end} {...props}>
